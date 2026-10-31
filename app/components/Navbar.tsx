@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, Bell, Menu, X, Flame, Coins } from 'lucide-react';
+import { Sun, Moon, Bell, Menu, X, Flame, Coins, Palette } from 'lucide-react';
 import { useState } from 'react';
+import { ThemeCustomizer } from '@/components/theme/ThemeCustomizer';
 import { cn } from '@/lib/utils';
 
 export function Navbar() {
@@ -58,6 +59,9 @@ export function Navbar() {
               >
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
+              
+              <ThemeCustomizer />
+              
               <button
                 className="p-2 rounded-xl hover:bg-secondary text-muted-foreground transition-colors relative"
                 aria-label="Notifications"
