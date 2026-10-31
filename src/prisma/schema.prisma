@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  name           String
+  password       String
+  credits        Int             @default(0)
+  streak         Int             @default(0)
+  streakUpdatedAt DateTime?
+  plan           String          @default("free")
+  isVerified     Boolean         @default(false)
+  emailVerified  DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  
+  referralCode   String          @unique
+  referredBy    String?
+  referralRewards Int             @default(0)
+  
+  subscriptions  Subscription[]
+  habits         Habit[]
+  creditTransactions CreditTransaction[]
+  referrals      Referral[]      @relation("referrer")
+  referredUsers Referral[]      @relation("referred")
+}
+
+model Habit {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  frequency   Frequency   @default(daily)
+  icon        String      @default("✨")
+  color       String      @default("#6366F1")
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  isActive    Boolean     @default(true)
+  
+  completedDates String[]  @default([])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  @@index([userId])
+}
+
+enum Frequency {
+  daily
+  weekly
+  monthly
+}
+
+model CreditTransaction {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  amount      Int
+  type        CreditType
+  source      String
+  description String?
+  createdAt   DateTime   @default(now())
+  
+  @@index([userId])
+}
+
+enum CreditType {
+  login_bonus
+  habit_completion
+  ad_reward
+  referral_reward
+  streak_save
+  ads_free_day
+  theme_unlock
+  extra_habit_slot
+  export_reports
+}
+
+model Referral {
+  id          String     @id @default(cuid())
+  referrerId  String
+  refereeId   String
+  code        String
+  status      ReferralStatus  @default(pending)
+  rewards     Int         @default(0)
+  createdAt   DateTime    @default(now())
+  
+  referrer   User         @relation("referrer", fields: [referrerId], references: [id])
+  referee    User         @relation("referred", fields: [refereeId], references: [id])
+  
+  @@unique([referrerId, refereeId])
+  @@index([code])
+}
+
+enum ReferralStatus {
+  pending
+  completed
+  rewarded
+}
+
+model Subscription {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+  plan        String
+  status      SubscriptionStatus  @default(active)
+  startsAt   DateTime        @default(now())
+  endsAt     DateTime?
+  autoRenew  Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  
+  @@index([userId])
+}
+
+enum SubscriptionStatus {
+  active
+  cancelled
+  expired
+  paused
+}
